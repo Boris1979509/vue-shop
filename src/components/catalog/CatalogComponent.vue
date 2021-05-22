@@ -1,28 +1,37 @@
 <template>
     <div class="catalog">
+        <h1>{{ title }}</h1>
+        <router-link :to="{name: 'cart', params:{cartData: CART}}">
+            <div class="catalog__link_to_cart">
+                Cart: {{ CART.length }}
+            </div>
+        </router-link>
         <div class="catalog__list">
             <catalog-item-component
-                    v-for="product in PRODUCTS"
-                    :key="product.article"
-                    :product-data="product"
-                    @add-to-cart="addToCart"
+                v-for="product in PRODUCTS"
+                :key="product.article"
+                :product-data="product"
+                @add-to-cart="addToCart"
             />
         </div>
     </div>
 </template>
 
 <script>
-    import CatalogItemComponent from "@/components/CatalogItemComponent";
+    import CatalogItemComponent from "@/components/catalog/CatalogItemComponent";
     import {mapActions, mapGetters} from 'vuex';
 
     export default {
         name: "CatalogComponent",
         data() {
-            return {}
+            return {
+                title: 'Catalog'
+            }
         },
         computed: {
             ...mapGetters([
-                "PRODUCTS"
+                "PRODUCTS",
+                "CART"
             ])
         },
         components: {
@@ -43,7 +52,7 @@
                     if (response) {
                         console.log('catalog start');
                     }
-                })
+                });
         }
     }
 </script>
@@ -55,6 +64,15 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+        }
+
+        &__link_to_cart {
+            position: fixed;
+            top: 80px;
+            right: 10px;
+            padding: 20px;
+            border: solid 1px #aeaeae;
+            background: #ffffff;
         }
     }
 </style>

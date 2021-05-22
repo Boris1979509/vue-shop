@@ -1,7 +1,10 @@
 <template>
     <div class="catalog-item">
-        <img :src="require(`../assets/images/${productData.image}`)" :alt="productData.name"
-             class="catalog-item__image">
+        <img
+                :src="require(`@/assets/images/${productData.image}`)"
+                :alt="productData.name"
+                class="catalog-item__image"
+        >
         <p class="catalog-item__name"><strong>{{ productData.name }}</strong></p>
         <p class="catalog-item__price"><strong>Price {{ productData.price }} $</strong></p>
         <button
@@ -21,6 +24,9 @@
             productData: {
                 type: Object
             }
+        },
+        mounted() {
+            this.$set(this.productData, 'quantity', 1);
         }
     }
 </script>
