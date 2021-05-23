@@ -6,12 +6,17 @@
                 Cart: {{ this['cart/get'].length }}
             </div>
         </router-link>
+        <select-component
+                :options="categories"
+                @select="sortByCategories"
+                :selected="selected"
+        />
         <div class="catalog__list">
             <catalog-item-component
-                v-for="product in this['products/get']"
-                :key="product.article"
-                :product-data="product"
-                @add-to-cart="addToCart"
+                    v-for="product in filteredProducts"
+                    :key="product.article"
+                    :product-data="product"
+                    @add-to-cart="addToCart"
             />
         </div>
     </div>
@@ -20,17 +25,36 @@
 <script>
     import CatalogItemComponent from "@/components/catalog/CatalogItemComponent";
     import {mapActions, mapGetters} from 'vuex';
+    import SelectComponent from "@/components/SelectComponent";
 
     export default {
         name: "CatalogComponent",
+        data() {
+            return {
+                categories: [
+                    {name: 'Все', value: 'all'},
+                    {name: 'Мужские', value: 'm'},
+                    {name: 'Женские', value: 'w'},
+                ],
+                selected: 'Все',
+                sortedProducts: []
+            }
+        },
         computed: {
             ...mapGetters([
                 "products/get",
                 "cart/get"
-            ])
+            ]),
+            filteredProducts() {
+                if (this.sortedProducts.length) {
+                    return this.sortedProducts
+                }
+                return this["products/get"];
+            }
         },
         components: {
-            CatalogItemComponent
+            CatalogItemComponent,
+            SelectComponent
         },
         methods: {
             ...mapActions([
@@ -39,15 +63,20 @@
             ]),
             addToCart(value) {
                 this["cart/add"](value);
+            },
+            sortByCategories(option) {
+                this.sortedProducts = this["products/get"]
+                    .filter(item => item.category === option.name);
+                this.selected = option.name;
             }
         },
         mounted() {
-            this["products/api"]()
-                .then(response => {
-                    if (response) {
-                        console.log('catalog start');
-                    }
-                });
+            // this["products/api"]()
+            //     .then(response => {
+            //         if (response) {
+            //             console.log('catalog start');
+            //         }
+            //     });
         }
     }
 </script>
