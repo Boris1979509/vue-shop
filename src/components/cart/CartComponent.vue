@@ -11,8 +11,8 @@
                 :cart-item-data="item"
                 :key="item.article"
                 @delete-from-cart="deleteFromCart(index)"
-                @increment="increment(index)"
-                @decrement="decrement(index)"
+                @increment="incrementItem(index)"
+                @decrement="decrementItem(index)"
         />
         <div class="cart__total">
             <p>Total: {{ cartAmount }} $</p>
@@ -23,7 +23,8 @@
 
 <script>
     import CartItemComponent from "@/components/cart/CartItemComponent";
-    import {mapActions} from 'vuex';
+    import { createNamespacedHelpers } from 'vuex';
+    const { mapActions } = createNamespacedHelpers('cart');
 
     export default {
         name: "CartComponent",
@@ -46,18 +47,18 @@
         },
         methods: {
             ...mapActions([
-                "DELETE_FROM_CART",
-                "DECREMENT",
-                "INCREMENT"
+                "delete",
+                "decrement",
+                "increment"
             ]),
             deleteFromCart(index) {
-                this.DELETE_FROM_CART(index)
+                this.delete(index)
             },
-            decrement(idx) {
-                this.DECREMENT(idx);
+            decrementItem(idx) {
+                this.decrement(idx);
             },
-            increment(idx) {
-                this.INCREMENT(idx);
+            incrementItem(idx) {
+                this.increment(idx);
             },
         },
         components: {

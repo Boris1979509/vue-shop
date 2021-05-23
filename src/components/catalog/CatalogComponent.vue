@@ -1,14 +1,14 @@
 <template>
     <div class="catalog">
-        <h1>{{ title }}</h1>
-        <router-link :to="{name: 'cart', params:{cartData: CART}}">
+        <h1>{{ $store.state.title }}</h1>
+        <router-link :to="{name: 'cart', params:{cartData: this['cart/get']}}">
             <div class="catalog__link_to_cart">
-                Cart: {{ CART.length }}
+                Cart: {{ this['cart/get'].length }}
             </div>
         </router-link>
         <div class="catalog__list">
             <catalog-item-component
-                v-for="product in PRODUCTS"
+                v-for="product in this['products/get']"
                 :key="product.article"
                 :product-data="product"
                 @add-to-cart="addToCart"
@@ -23,15 +23,10 @@
 
     export default {
         name: "CatalogComponent",
-        data() {
-            return {
-                title: 'Catalog'
-            }
-        },
         computed: {
             ...mapGetters([
-                "PRODUCTS",
-                "CART"
+                "products/get",
+                "cart/get"
             ])
         },
         components: {
@@ -39,15 +34,15 @@
         },
         methods: {
             ...mapActions([
-                "GET_PRODUCTS_FROM_API",
-                "ADD_TO_CART"
+                "products/api",
+                "cart/add"
             ]),
             addToCart(value) {
-                this.ADD_TO_CART(value);
+                this["cart/add"](value);
             }
         },
         mounted() {
-            this.GET_PRODUCTS_FROM_API()
+            this["products/api"]()
                 .then(response => {
                     if (response) {
                         console.log('catalog start');
