@@ -6,11 +6,27 @@
 
 <script>
     import MainComponent from "@/components/MainComponent";
+    import {mapActions} from "vuex";
 
     export default {
         name: 'App',
         components: {
             MainComponent
+        },
+        methods: {
+            ...mapActions('select', [
+                "setMobile",
+                "setDesktop"
+            ]),
+        },
+        mounted() {
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 767) {
+                    this.setDesktop();
+                } else {
+                    this.setMobile();
+                }
+            })
         }
     }
 </script>

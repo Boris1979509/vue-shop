@@ -10,6 +10,7 @@
                 :options="categories"
                 @select="sortByCategories"
                 :selected="selected"
+                :is-expended="this['select/getIsMobile']"
         />
         <div class="catalog__list">
             <catalog-item-component
@@ -43,7 +44,9 @@
         computed: {
             ...mapGetters([
                 "products/get",
-                "cart/get"
+                "cart/get",
+                "select/getIsDesktop",
+                "select/getIsMobile"
             ]),
             filteredProducts() {
                 if (this.sortedProducts.length) {
@@ -71,7 +74,7 @@
             }
         },
         mounted() {
-            // this["products/api"]()
+            this["products/api"]()
             //     .then(response => {
             //         if (response) {
             //             console.log('catalog start');

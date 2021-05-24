@@ -1,11 +1,11 @@
 <template>
     <div class="select">
         <p class="title" @click="isVisible = !isVisible">{{ selected }}</p>
-        <div class="options" v-if="isVisible">
+        <div class="options" v-if="isVisible || isExpended">
             <p
-                v-for="(option, index) in options"
-                :key="index"
-                @click="selectOption(option)"
+                    v-for="(option, index) in options"
+                    :key="index"
+                    @click="selectOption(option)"
             >
                 {{ option.name }}
             </p>
@@ -31,6 +31,10 @@
             selected: {
                 type: String,
                 default: ''
+            },
+            isExpended: {
+                type: Boolean,
+                default: false
             }
         },
         methods: {
