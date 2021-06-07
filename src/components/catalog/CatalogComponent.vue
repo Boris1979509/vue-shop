@@ -1,6 +1,7 @@
 <template>
     <div class="catalog">
         <h1>{{ $store.state.title }}</h1>
+        <router-link :to="{name: 'crypto'}">Crypto</router-link>
         <router-link :to="{name: 'cart', params:{cartData: this['cart/get']}}">
             <div class="catalog__link_to_cart">
                 Cart: {{ this['cart/get'].length }}
