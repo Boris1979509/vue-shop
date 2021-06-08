@@ -49,6 +49,8 @@
                     <div
                             v-for="(t, index) in tickers"
                             :key="index"
+                            @click="select(t)"
+                            :class="{'border-4': sel === t}"
                             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
                     >
                         <div class="px-4 py-5 sm:p-6 text-center">
@@ -84,17 +86,20 @@
                 </dl>
                 <hr class="w-full border-t border-gray-600 my-4"/>
             </template>
-            <section class="relative">
+            <section v-if="sel" class="relative">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
                     VUE - USD
                 </h3>
                 <div class="flex items-end border-gray-600 border-b border-l h-64">
-                    <div class="bg-purple-800 border w-10 h-24"></div>
-                    <div class="bg-purple-800 border w-10 h-32"></div>
-                    <div class="bg-purple-800 border w-10 h-48"></div>
-                    <div class="bg-purple-800 border w-10 h-16"></div>
+                    <div
+                            v-for="(bar, index) in normalizeGraphic()"
+                            :key="index"
+                            :style="{height: `${bar}%`}"
+                            class="bg-purple-800 border w-10">
+                    </div>
                 </div>
                 <button
+                        @click="sel = null"
                         type="button"
                         class="absolute top-0 right-0"
                 >
@@ -131,34 +136,48 @@
         name: "CryptoComponent",
         data() {
             return {
-                ticker: "default",
-                tickers: [
-                    {
-                        name: "DEMO1",
-                        price: "-"
-                    },
-                    {
-                        name: "DEMO2",
-                        price: "-"
-                    },
-                    {
-                        name: "DEMO3",
-                        price: "-"
-                    },
-                ]
+                ticker: "",
+                tickers: [],
+                sel: null,
+                graphic: []
             }
         },
         methods: {
             add() {
-                const newTicker = {
+                const currentTicker = {
                     name: this.ticker,
                     price: "-"
                 };
-                this.tickers.push(newTicker);
+                this.tickers.push(currentTicker);
+                setInterval(async () => {
+                    const api_key = '7964ff9f3e01bfb021949725acf3bf25531bed73124bbf7c60b001c1efa19155';
+                    let url = `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker.name}&tsyms=USD&api_key=${api_key}`;
+                    let response = await fetch(url);
+
+                    let data = await response.json();
+                    currentTicker.price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+
+                    if (this.sel?.name === currentTicker.name) {
+                        this.graphic.push(data.USD);
+                    }
+                }, 5000);
+
+
                 this.ticker = "";
             },
-            handleDelete(tickerToRemove){
+            handleDelete(tickerToRemove) {
                 this.tickers = this.tickers.filter(t => t !== tickerToRemove);
+            },
+            normalizeGraphic() {
+                let maxValue = Math.max(...this.graphic);
+                let minValue = Math.min(...this.graphic);
+                return this.graphic.map(p =>
+                    5 + ((p - minValue) * 95) / (maxValue - minValue)
+                );
+            },
+            select(ticker) {
+                this.sel = ticker;
+                this.graphic = [];
             }
         }
     }
