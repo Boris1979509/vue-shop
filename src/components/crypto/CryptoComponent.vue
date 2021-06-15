@@ -44,10 +44,30 @@
             </section>
 
             <template v-if="tickers.length">
+                <div class="flex" style="align-items: baseline">
+                    <label class="mr-2">Фильтр:</label>
+                    <input v-model="filter" type="text"
+                           class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md">
+
+                    <button
+                            v-if="page > 1"
+                            @click="page--"
+                            type="button"
+                            class="my-4 mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Назад
+                    </button>
+                    <button
+                            v-if="hasNextPage"
+                            @click="page++"
+                            type="button"
+                            class="my-4 mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Вперёд
+                    </button>
+                </div>
                 <hr class="w-full border-t border-gray-600 my-4"/>
                 <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
                     <div
-                            v-for="(t, index) in tickers"
+                            v-for="(t, index) in filteredTickers()"
                             :key="index"
                             @click="select(t)"
                             :class="{'border-4': sel === t}"
@@ -55,7 +75,7 @@
                     >
                         <div class="px-4 py-5 sm:p-6 text-center">
                             <dt class="text-sm font-medium text-gray-500 truncate">
-                                {{ t.name }}
+                                {{ t.name }} - USD
                             </dt>
                             <dd class="mt-1 text-3xl font-semibold text-gray-900">
                                 {{ t.price }}
@@ -88,7 +108,7 @@
             </template>
             <section v-if="sel" class="relative">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-                    VUE - USD
+                    {{ sel.name }} - USD
                 </h3>
                 <div class="flex items-end border-gray-600 border-b border-l h-64">
                     <div
@@ -139,31 +159,47 @@
                 ticker: "",
                 tickers: [],
                 sel: null,
-                graphic: []
+                graphic: [],
+                page: 1,
+                limit: 3,
+                filter: "",
+                hasNextPage: true
+            }
+        },
+        created() {
+            const tickersData = localStorage.getItem('crypto-list');
+            if (tickersData) {
+                this.tickers = JSON.parse(tickersData);
+                this.tickers.forEach(item => {
+                    this.subscribeToUpdates(item.name);
+                });
             }
         },
         methods: {
+            subscribeToUpdates(tickerName) {
+                setInterval(async () => {
+                    const api_key = '7964ff9f3e01bfb021949725acf3bf25531bed73124bbf7c60b001c1efa19155';
+                    let url = `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=${api_key}`;
+                    let response = await fetch(url);
+
+                    let data = await response.json();
+                    this.tickers.find(t => t.name === tickerName
+                    ).price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+
+                    if (this.sel?.name === tickerName) {
+                        this.graphic.push(data.USD);
+                    }
+                }, 3000);
+            },
             add() {
                 const currentTicker = {
                     name: this.ticker,
                     price: "-"
                 };
                 this.tickers.push(currentTicker);
-                setInterval(async () => {
-                    const api_key = '7964ff9f3e01bfb021949725acf3bf25531bed73124bbf7c60b001c1efa19155';
-                    let url = `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker.name}&tsyms=USD&api_key=${api_key}`;
-                    let response = await fetch(url);
-
-                    let data = await response.json();
-                    currentTicker.price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
-
-                    if (this.sel?.name === currentTicker.name) {
-                        this.graphic.push(data.USD);
-                    }
-                }, 5000);
-
-
-                this.ticker = "";
+                localStorage.setItem('crypto-list', JSON.stringify(this.tickers));
+                this.subscribeToUpdates(currentTicker.name);
+                this.filter = "";
             },
             handleDelete(tickerToRemove) {
                 this.tickers = this.tickers.filter(t => t !== tickerToRemove);
@@ -178,6 +214,19 @@
             select(ticker) {
                 this.sel = ticker;
                 this.graphic = [];
+            },
+            filteredTickers() {
+                const start = (this.page - 1) * this.limit; // 0
+                const end = (this.page * this.limit); // 3
+                const filteredTickers = this.tickers.filter(ticker => ticker.name.includes(this.filter));
+                this.hasNextPage = filteredTickers.length > end;
+                return filteredTickers.slice(start, end);
+            }
+        },
+        watch: {
+            filter(){
+                this.page = 1;
+                window.history.pushState(null, document.title, `${window.location.pathname}&filter=${this.filter}`)
             }
         }
     }
